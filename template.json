@@ -1,0 +1,78 @@
+{
+  "variables": {
+    "os_version": "18.04.1",
+    "iso_checksum": "a5b0ea5918f850124f3d72ef4b85bda82f0fcd02ec721be19c1a6952791c8ee8",
+    "ssh_fullname": "ubuntu-name",
+    "ssh_username": "ubuntu-user",
+    "ssh_password": "ubuntu-pass",
+    "domain": "ubuntu-domain",
+    "hostname": "ubuntu-host"
+  },
+  "builders":[
+    {
+      "type": "virtualbox-iso",
+      "guest_os_type": "Ubuntu_64",
+      "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-{{user `os_version`}}-server-amd64.iso",
+      "iso_checksum": "{{user `iso_checksum` }}",
+      "iso_checksum_type": "sha256",
+      "boot_command": [
+        "<esc><wait>",
+        "<esc><wait>",
+        "<enter><wait>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US<wait>",
+        " netcfg/get_domain={{user `domain` }}<wait>",
+        " netcfg/get_hostname={{user `hostname` }}<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>",
+        " -- <wait>",
+        "<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "ssh_wait_timeout": "10000s",
+      "ssh_username": "{{user `ssh_username` }}",
+      "ssh_password": "{{user `ssh_password` }}",
+      "shutdown_command": "echo '{{ user `ssh_password` }}'|sudo -S shutdown -P now",
+      "http_directory": "http",
+      "bundle_iso": true,
+      "headless": false,
+      "format": "ova",
+      "guest_additions_mode": "disable",
+      "memory": 1024,
+      "cpus": 2,
+      "disk_size": "16000",
+      "hard_drive_interface": "sata",
+      "hard_drive_nonrotational": true,
+      "iso_interface": "sata"
+    }
+  ],
+  "provisioners":[
+    {
+      "type": "file",
+      "source": "./upload_files/hooks.json",
+      "destination": "./hooks.json"
+    },
+    {
+      "type": "file",
+      "source": "./upload_files/deploy.sh",
+      "destination": "./deploy.sh"
+    },
+    {
+      "type": "shell",
+      "script": "./scripts/provision.sh"
+    }
+  ],
+  "post-processors": []
+}
