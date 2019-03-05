@@ -5,8 +5,8 @@
     "ssh_fullname": "ubuntu-name",
     "ssh_username": "ubuntu-user",
     "ssh_password": "ubuntu-pass",
-    "domain": "ubuntu-domain",
-    "hostname": "ubuntu-host"
+    "domain": "example.com",
+    "hostname": "host"
   },
   "builders":[
     {
@@ -15,29 +15,19 @@
       "iso_url": "http://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-{{user `os_version`}}-server-amd64.iso",
       "iso_checksum": "{{user `iso_checksum` }}",
       "iso_checksum_type": "sha256",
+      "vm_name": "ubuntu-vm",
       "boot_command": [
         "<esc><wait>",
         "<esc><wait>",
         "<enter><wait>",
-        "/install/vmlinuz<wait>",
-        " auto<wait>",
-        " console-setup/ask_detect=false<wait>",
-        " console-setup/layoutcode=us<wait>",
-        " console-setup/modelcode=pc105<wait>",
-        " debconf/frontend=noninteractive<wait>",
-        " debian-installer=en_US<wait>",
-        " fb=false<wait>",
-        " initrd=/install/initrd.gz<wait>",
-        " kbd-chooser/method=us<wait>",
-        " keyboard-configuration/layout=USA<wait>",
-        " keyboard-configuration/variant=USA<wait>",
-        " locale=en_US<wait>",
+        "install<wait>",
+        " auto=true<wait>",
+        " priority=critical<wait>",
+        " locale=en_US.UTF-8<wait>",
+        " keymap=jp debian-installer/keymap=jp<wait>",
         " netcfg/get_domain={{user `domain` }}<wait>",
         " netcfg/get_hostname={{user `hostname` }}<wait>",
-        " grub-installer/bootdev=/dev/sda<wait>",
-        " noapic<wait>",
         " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg<wait>",
-        " -- <wait>",
         "<enter><wait>"
       ],
       "boot_wait": "10s",
@@ -50,15 +40,33 @@
       "headless": false,
       "format": "ova",
       "guest_additions_mode": "disable",
-      "memory": 1024,
+      "memory": 2048,
       "cpus": 2,
-      "disk_size": "16000",
+      "disk_size": "32000",
       "hard_drive_interface": "sata",
       "hard_drive_nonrotational": true,
       "iso_interface": "sata"
     }
   ],
   "provisioners":[
+    {
+      "type": "shell-local",
+      "script": "./scripts/setup_port-forward.sh"
+    },
+    {
+      "type": "shell",
+      "inline": "mkdir ./docker"
+    },
+    {
+      "type": "file",
+      "source": "../docker/docker-compose.production.yml",
+      "destination": "./docker/docker-compose.yml"
+    },
+    {
+      "type": "file",
+      "source": "../docker/.env.default",
+      "destination": "./docker/.env.default"
+    },
     {
       "type": "file",
       "source": "./upload_files/hooks.json",
@@ -67,7 +75,7 @@
     {
       "type": "file",
       "source": "./upload_files/deploy.sh",
-      "destination": "./deploy.sh"
+      "destination": "./docker/deploy.sh"
     },
     {
       "type": "shell",
