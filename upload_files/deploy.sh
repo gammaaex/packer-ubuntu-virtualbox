@@ -1,21 +1,18 @@
-[
-  {
-    "id": "deploy",
-    "execute-command": "./deploy.sh",
-    "command-working-directory": "/home/ubuntu-user/docker",
-    "response-message": "Executing deploy process by webhook...\n",
-    "trigger-rule":
-    {
-      "match":
-      {
-        "type": "value",
-        "value": "asdfghjkl",
-        "parameter":
-        {
-          "source": "url",
-          "name": "token"
-        }
-      }
-    }
-  }
-]
+#!/bin/sh
+
+echo "--------------------- Start: deploy.sh ---------------------"
+
+DOCKER_COMPOSE=/usr/local/bin/docker-compose
+
+# Stop and Remove containers
+$DOCKER_COMPOSE down
+# Pull new image
+$DOCKER_COMPOSE pull
+# Create and Start containers
+$DOCKER_COMPOSE up -d
+# Execute database migration
+$DOCKER_COMPOSE exec -T apache /bin/bash -c "dbmate wait && dbmate up"
+# Write deploy log
+date >> deploy.log
+
+echo "--------------------- Finish: deploy.sh ---------------------"
