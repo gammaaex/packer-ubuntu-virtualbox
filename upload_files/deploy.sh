@@ -1,14 +1,21 @@
-#!/bin/sh
-
-echo "--------------------- Start: deploy.sh ---------------------"
-
-# Stop and Remove containers
-docker-compose down
-# Pull new image
-docker-compose pull
-# Create and Start containers
-docker-compose up -d
-
-echo -e "\nhooked\n"
-
-echo "--------------------- Finish: deploy.sh ---------------------"
+[
+  {
+    "id": "deploy",
+    "execute-command": "./deploy.sh",
+    "command-working-directory": "/home/ubuntu-user/docker",
+    "response-message": "Executing deploy process by webhook...\n",
+    "trigger-rule":
+    {
+      "match":
+      {
+        "type": "value",
+        "value": "asdfghjkl",
+        "parameter":
+        {
+          "source": "url",
+          "name": "token"
+        }
+      }
+    }
+  }
+]
